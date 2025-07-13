@@ -25,30 +25,33 @@
       adminTokenCacheKey: 'adminAuthTokenCache',
     },
     api: {
-      loginUrl: '',
-      subscriptionUrl: '',
-      updateTokensUrl: '',
-      updateUserFeaturesUrl: '',
+      loginUrl: '', // <-- ENTER YOUR LOGIN ENDPOINT
+      subscriptionUrl: '', // <-- ENTER YOUR SUBSCRIPTION ENDPOINT
+      updateTokensUrl: '', // <-- ENTER YOUR TOKENS ENDPOINT
+      updateUserFeaturesUrl: '', // <-- ENTER YOUR FEATURES ENDPOINT
       deleteUserUrl: '/User',
       credentials: {
-        email: "",
-        password: ""
+        email: "", // <-- ENTER YOUR ADMIN EMAIL
+        password: "" // <-- ENTER YOUR ADMIN PASSWORD
       },
-      prodProductId: '',
-      stageProductId: '',
+      prodProductId: '', // <-- ENTER product id to buy a subscription on prod
+      stageProductId: '', // <-- ENTER product id to buy a subscription on stg
       prodApiBase: 'https://api.get-honey.ai/api',
-      stageApiBase: '',
+      stageApiBase: '', // <-- ENTER stage api url
     },
     domainGroups: {
       prod: [
-      'get-honey.ai'
+      'get-honey.ai' // <-- Add prod domains where set subscription and tokens will be work
       ],
       stage: [
+      // Add stage domains where domain where set subscription and tokens will be work. 
       ]
     },
     readOnlyDomains: [
+      // Add domains where set subscription and tokens won't be work. The domain for endpoints that are responsible for subscription and token updates does not work due to the Origin header, which the browser adds automatically for cross-domain requests, and therefore the CORS mechanism error is triggered on such domains. Therefore, on such domains you can only view user data.
     ],
     featureChatExperimentOptions: [
+      // Add chatgroups values for dropdown menu 
     ],
     nonInteractiveFeatures: [
         'hasConfirmedAge',
