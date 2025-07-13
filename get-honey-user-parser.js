@@ -576,7 +576,7 @@
     const container = document.createElement('div');
     container.id = config.selectors.container.substring(1);
     Object.assign(container.style, {
-      position: 'fixed', bottom: '20px', right: '20px', width: '275px',
+      position: 'fixed', bottom: '20px', right: '20px', width: '276px',
       fontSize: '9px', background: 'rgba(0,0,0,0.5)', color: '#fff',
       padding: '3px 3px 3px', zIndex: 9999, fontFamily: 'monospace',
       backdropFilter: 'blur(5px)', borderRadius: '8px', overflow: 'hidden',
