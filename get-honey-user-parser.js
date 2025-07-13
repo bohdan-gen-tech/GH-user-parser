@@ -441,15 +441,15 @@
     try {
       await navigator.clipboard.writeText(text);
       target.style.backgroundColor = 'limegreen';
-      icon.textContent = '✅ user: ';
+      icon.textContent = '✅ user:';
     } catch (err) {
       target.style.backgroundColor = 'crimson';
-      icon.textContent = '❌ user: ';
+      icon.textContent = '❌ user:';
       console.error("Copy failed:", err);
     } finally {
       setTimeout(() => {
         target.style.backgroundColor = '#444';
-        icon.textContent = '🆔 user: ';
+        icon.textContent = '🆔 user:';
       }, 1000);
     }
   }
@@ -576,7 +576,7 @@
     const container = document.createElement('div');
     container.id = config.selectors.container.substring(1);
     Object.assign(container.style, {
-      position: 'fixed', bottom: '20px', right: '20px', width: '280px',
+      position: 'fixed', bottom: '20px', right: '20px', width: '275px',
       fontSize: '9px', background: 'rgba(0,0,0,0.5)', color: '#fff',
       padding: '3px 3px 3px', zIndex: 9999, fontFamily: 'monospace',
       backdropFilter: 'blur(5px)', borderRadius: '8px', overflow: 'hidden',
@@ -597,7 +597,7 @@
         .filter(([key]) => !config.nonInteractiveFeatures.includes(key)) : [];
 
     const updatableFeaturesHTML = updatableFeatures.length > 0 ? `
-      <div style="margin: 10px 0 0px 0;"><b>🔧 Updatable userFeatures:</b></div>
+      <div style="margin: 10px 0 0px 0;"><b>🔧 Updatable Features:</b></div>
       ${updatableFeatures.map(([key, value]) => {
         const displayKey = key.length > 37 ? key.substring(0, 36) + '...' : key;
         const commonStyles = `display: flex; justify-content: space-between; align-items: center; margin-top: 2px;`;
@@ -635,17 +635,17 @@
       ${isReadOnly ? '' : `
         <div style="margin-top: 8px; display: flex; gap: 5px; align-items: center;">
           <input data-input="tokens" type="number" placeholder="SET NEW TOKEN AMOUNT" style="width: 100%; height: 17px; width: 189px; box-sizing: border-box; background: #222; color: white; border: 1px solid #fff; border-radius: 4px; padding: 4px 6px; font-family: monospace; font-size: 9px;text-align:center;">
-          <button data-action="update-tokens" style="cursor: pointer; height: 17px; width: 58px; background: #333; color: #fff; font-weight: regular; border: none; border-radius: 4px; padding: 1px 1px; font-size: 9px; font-family: monospace; text-align:center; white-space: nowrap;">
-            🔄 Update
+          <button data-action="update-tokens" style="cursor: pointer; height: 17px; width: 100%; background: #333; color: #fff; font-weight: regular; border: none; border-radius: 4px; padding: 1px 1px; font-size: 9px; font-family: monospace; text-align:center; white-space: nowrap;">
+            🔄 Update Token Balance
           </button>
         </div>
       `}
     ` : `
       <div style="margin-top: 8px; user-select: text;">
-        <span>💳 unsubscribed! </span>
+        <span>💳 unsubscribed: </span>
         ${isReadOnly ? '' : `
-          <button data-action="activate-sub" title="Click to activate monthly subscription" style="color: #0ff; cursor: pointer; background-color: #444; border-radius: 4px; padding: 0 4px; font-size: 9px; font-family: monospace; line-height: 1.6;">
-          activate 1 month?
+          <button data-action="activate-sub" title="Click to activate monthly subscription" style="color: #0ff; cursor: pointer; width: 177px; background-color: #444; border-radius: 4px; padding: 0px 3px; font-size: 9px; font-family: monospace; line-height: 1.6;">
+          activate 1 month subscription
           </button>
         `}
       </div>
@@ -666,12 +666,12 @@
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
         <div>
-            <span data-icon="copy-id">🆔 user: </span>
-            <span data-action="copy-id" title="Click to copy user.id" style="color: #0ff; cursor: pointer; background-color: #444; padding: 2px 4px; border-radius: 4px; user-select: text;">
+            <span data-icon="copy-id">🆔 user:</span>
+            <span data-action="copy-id" title="Click to copy user.id" style="color: #0ff; cursor: pointer; background-color: #444; padding: 2px 3px 2px 3px; border-radius: 4px; left:0; user-select: text;">
             ${id}
             </span>
         </div>
-        <button data-action="delete-user" title="Delete this user" style="background: transparent; border: none; cursor: pointer; font-size: 14px; color: #fff; padding: 0 4px;">☠️</button>
+        <button data-action="delete-user" title="Delete this user" style="background: transparent; border: none; cursor: pointer; font-size: 14px; color: #fff; padding: 0 2px;">☠️</button>
       </div>
       <div style="margin-bottom: 6px;">📩 email: ${email || '-'}</div>
 
@@ -729,7 +729,8 @@
     }
   }
 
-    // --- DRAGGING & POSITIONING ---
+
+  // --- DRAGGING & POSITIONING ---
 
   /**
    * Applies the saved position to the container.
