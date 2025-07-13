@@ -4,12 +4,13 @@ Tampermonkey userscript to display parsed user data from localStorage on get-hon
 
 ## ✅ Features
 
-- Realtime updates without page reload
-- Draggable, closable overlay panel
 - Highlights user ID, email, utmSource, features
 - Click to copy user ID
 - "Clear site data" button
 - Add 1 month subscription (Credentials required)
+- Update tokens
+- Delete user
+- Draggable, closable overlay panel
 - Saves overlay position across reloads
 
 ## 🔗 Installation
