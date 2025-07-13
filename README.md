@@ -8,7 +8,7 @@ Tampermonkey userscript to display parsed user data from localStorage on get-hon
 - Click to copy user ID
 - "Clear site data" button
 - Add 1 month subscription (Credentials required)
-- Update tokens
+- Update tokens (Credentials required)
 - Delete user
 - Draggable, closable overlay panel
 - Saves overlay position across reloads
