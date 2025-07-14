@@ -8,8 +8,8 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=get-honey.ai
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @updateURL    https://raw.githubusercontent.com/bohdan-gen-tech/GH-user-parser/main/get-honey-user-parser.js
-// @downloadURL  https://raw.githubusercontent.com/bohdan-gen-tech/GH-user-parser/main/get-honey-user-parser.js
+// @updateURL    https://raw.githubusercontent.com/bohdan-gen-tech/GH-user-parser/main/get-honey-user-parser.user.js
+// @downloadURL  https://raw.githubusercontent.com/bohdan-gen-tech/GH-user-parser/main/get-honey-user-parser.user.js
 // ==/UserScript==
 
 (function () {
