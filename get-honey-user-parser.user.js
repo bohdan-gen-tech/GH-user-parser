@@ -644,7 +644,7 @@
       <div style="margin-top: 8px; user-select: text;">
         <span>💳 unsubscribed: </span>
         ${isReadOnly ? '' : `
-          <button data-action="activate-sub" title="Click to activate monthly subscription" style="color: #0ff; cursor: pointer; width: 177px; background-color: #444; border-radius: 4px; padding: 0px 3px; font-size: 9px; font-family: monospace; line-height: 1.6;">
+          <button data-action="activate-sub" title="Click to activate monthly subscription" style="color: #0ff; cursor: pointer; width: 176px; background-color: #444; border-radius: 4px; padding: 0px 3px; font-size: 9px; font-family: monospace; line-height: 1.6;">
           activate 1 month subscription
           </button>
         `}
