@@ -1,6 +1,6 @@
 # Get-Honey User Parser from LocalStorage
 
-Tampermonkey userscript to display parsed user data from localStorage on get-honey.ai / .online.
+Tampermonkey userscript to display parsed user data from localStorage on get-honey.ai
 
 ## ✅ Features
 
