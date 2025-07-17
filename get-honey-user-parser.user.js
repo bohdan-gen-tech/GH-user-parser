@@ -59,10 +59,10 @@
         'isTUser',
         'nEnabled'
     ],
-
     checkInterval: 1000,
     selectors: {
       container: '#userInfoPanel',
+      panelBody: '#userInfoPanelBody',
       copyIdBtn: '[data-action="copy-id"]',
       copyIdIcon: '[data-icon="copy-id"]',
       activateBtn: '[data-action="activate-sub"]',
@@ -70,7 +70,8 @@
       tokensInput: '[data-input="tokens"]',
       clearBtn: '[data-action="clear-data"]',
       closeBtn: '[data-action="close"]',
-      dragHandle: '[data-handle="drag"]',
+      collapseBtn: '[data-action="toggle-collapse"]',
+      dragHandle: '[data-handle="parser-drag"]',
       toggleFeatureBtn: '[data-action="toggle-feature"]',
       updateFeatureInput: '[data-action="update-feature-value"]',
       dropdownToggle: '[data-action="toggle-dropdown"]',
@@ -99,7 +100,7 @@
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
   /**
-   * Gets API config (apiBase, productId) based on the current domain.
+   * Gets API config (apiBase, productId) based on the current domain group.
    * @returns {{apiBase: string, productId: string}}
    */
   function getApiConfigForCurrentDomain() {
@@ -114,7 +115,7 @@
   }
 
   /**
-   * Kicks off the main interval to check for user data changes.
+   * Kicks off the main interval to check for user data changes in localStorage.
    */
   function main() {
     setInterval(() => {
@@ -137,7 +138,7 @@
   }
 
   /**
-   * Waits for the page to be fully loaded before starting.
+   * Waits for the page to be fully loaded before starting the main logic.
    */
   function waitForLoad() {
     if (document.readyState === 'complete') {
@@ -148,7 +149,7 @@
   }
 
   /**
-   * Attaches all event listeners for the panel.
+   * Attaches all event listeners for the panel (clicks, keydown).
    * @param {HTMLElement} container - The panel's container element.
    * @param {object} user - The user data object.
    */
@@ -166,6 +167,7 @@
         'toggle-dropdown': () => handleToggleDropdown(e.target),
         'set-preset-value': () => handleSetPresetValue(e.target),
         'delete-user': () => handleDeleteUser(e.target, user.id),
+        'toggle-collapse': () => handleToggleCollapse(e.target),
       };
       actions[action]?.(e);
     });
@@ -184,6 +186,20 @@
             });
         }
     });
+  }
+
+  /**
+   * Toggles the collapsed/expanded state of the panel.
+   * @param {HTMLElement} button - The collapse toggle button.
+   */
+  function handleToggleCollapse(button) {
+    const body = ui.container.querySelector(config.selectors.panelBody);
+    if (!body) return;
+    const isCollapsed = body.style.display === 'none';
+    const newState = !isCollapsed;
+    body.style.display = newState ? 'none' : 'block';
+    button.textContent = newState ? '◻' : '–';
+    GM_setValue(config.storage.panelCollapsedKey, newState);
   }
 
   /**
@@ -218,15 +234,15 @@
    * @returns {string|null} The user's access token or null if not found.
    */
   function getUserAccessToken() {
-      const rawAuth = localStorage.getItem(config.storage.authKey);
-      if (!rawAuth) {
-          throw new Error('User auth data not found in localStorage.');
-      }
-      const authData = JSON.parse(rawAuth);
-      if (!authData.accessToken) {
-          throw new Error('User accessToken not found in auth data.');
-      }
-      return JSON.parse(authData.accessToken);
+    const rawAuth = localStorage.getItem(config.storage.authKey);
+    if (!rawAuth) {
+      throw new Error('User auth data not found in localStorage.');
+    }
+    const authData = JSON.parse(rawAuth);
+    if (!authData.accessToken) {
+      throw new Error('User accessToken not found in auth data.');
+    }
+    return JSON.parse(authData.accessToken);
   }
 
   /**
@@ -234,12 +250,12 @@
    * @param {HTMLElement} button - The dropdown toggle button.
    */
   function handleToggleDropdown(button) {
-      const dropdownId = button.dataset.targetDropdown;
-      const dropdown = document.getElementById(dropdownId);
-      if (dropdown) {
-          const isVisible = dropdown.style.display === 'block';
-          dropdown.style.display = isVisible ? 'none' : 'block';
-      }
+    const dropdownId = button.dataset.targetDropdown;
+    const dropdown = document.getElementById(dropdownId);
+    if (dropdown) {
+      const isVisible = dropdown.style.display === 'block';
+      dropdown.style.display = isVisible ? 'none' : 'block';
+    }
   }
 
   /**
@@ -247,17 +263,17 @@
    * @param {HTMLElement} optionElement - The clicked option element in the dropdown.
    */
   function handleSetPresetValue(optionElement) {
-      const targetInputId = optionElement.dataset.targetInput;
-      const value = optionElement.dataset.value;
-      const input = document.getElementById(targetInputId);
-      const dropdown = optionElement.closest('.feature-dropdown');
-      if (input) {
-          input.value = value;
-          input.focus();
-      }
-      if (dropdown) {
-          dropdown.style.display = 'none';
-      }
+    const targetInputId = optionElement.dataset.targetInput;
+    const value = optionElement.dataset.value;
+    const input = document.getElementById(targetInputId);
+    const dropdown = optionElement.closest('.feature-dropdown');
+    if (input) {
+      input.value = value;
+      input.focus();
+    }
+    if (dropdown) {
+      dropdown.style.display = 'none';
+    }
   }
 
   /**
@@ -267,21 +283,21 @@
    * @param {any} newFeatureValue - The new value for the feature.
    */
   async function handleUpdateUserFeature(userId, featureKey, newFeatureValue) {
-      const { apiBase } = getApiConfigForCurrentDomain();
-      const accessToken = await getAdminAccessToken();
-      const body = {
-          userId,
-          features: { [capitalize(featureKey)]: newFeatureValue }
-      };
-      const response = await fetch(apiBase + config.api.updateUserFeaturesUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
-          body: JSON.stringify(body),
-      });
-      if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`${response.status}: ${errorBody}`);
-      }
+    const { apiBase } = getApiConfigForCurrentDomain();
+    const accessToken = await getAdminAccessToken();
+    const body = {
+      userId,
+      features: { [capitalize(featureKey)]: newFeatureValue }
+    };
+    const response = await fetch(apiBase + config.api.updateUserFeaturesUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`${response.status}: ${errorBody}`);
+    }
   }
 
   /**
@@ -290,31 +306,31 @@
    * @param {string} userId - The user's ID.
    */
   async function handleToggleFeature(button, userId) {
-      const key = button.dataset.key;
-      const currentValue = button.textContent.trim() === 'true';
-      const newValue = !currentValue;
-      button.disabled = true;
-      button.textContent = '⏳';
-      try {
-          await handleUpdateUserFeature(userId, key, newValue);
-          button.style.backgroundColor = 'limegreen';
-          button.style.color = 'black';
-          button.textContent = '✅';
-          setTimeout(() => window.location.reload(), 500);
-      } catch (err) {
-          button.style.backgroundColor = 'crimson';
-          button.style.color = 'white';
-          button.textContent = '❌';
-          button.title = err.message;
-          console.error(err);
-          setTimeout(() => {
-              button.disabled = false;
-              button.textContent = String(currentValue);
-              button.title = '';
-              button.style.backgroundColor = '#444';
-              button.style.color = 'white';
-          }, 3000);
-      }
+    const key = button.dataset.key;
+    const currentValue = button.textContent.trim() === 'true';
+    const newValue = !currentValue;
+    button.disabled = true;
+    button.textContent = '⏳';
+    try {
+      await handleUpdateUserFeature(userId, key, newValue);
+      button.style.backgroundColor = 'limegreen';
+      button.style.color = 'black';
+      button.textContent = '✅';
+      setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+      button.style.backgroundColor = 'crimson';
+      button.style.color = 'white';
+      button.textContent = '❌';
+      button.title = err.message;
+      console.error(err);
+      setTimeout(() => {
+        button.disabled = false;
+        button.textContent = String(currentValue);
+        button.title = '';
+        button.style.backgroundColor = '#444';
+        button.style.color = 'white';
+      }, 3000);
+    }
   }
 
   /**
@@ -323,26 +339,26 @@
    * @param {string} userId - The user's ID.
    */
   async function handleUpdateFeatureValue(input, userId) {
-      const key = input.dataset.key;
-      const newValue = input.value;
-      const originalValue = input.defaultValue;
-      const originalBorder = input.style.border;
-      input.disabled = true;
-      input.style.border = '1px solid #ff0';
-      try {
-          await handleUpdateUserFeature(userId, key, newValue);
-          input.style.border = '1px solid limegreen';
-          setTimeout(() => window.location.reload(), 500);
-      } catch(err) {
-          input.style.border = '1px solid crimson';
-          input.value = err.message;
-          console.error(err);
-          setTimeout(() => {
-              input.disabled = false;
-              input.value = originalValue;
-              input.style.border = originalBorder;
-          }, 3000);
-      }
+    const key = input.dataset.key;
+    const newValue = input.value;
+    const originalValue = input.defaultValue;
+    const originalBorder = input.style.border;
+    input.disabled = true;
+    input.style.border = '1px solid #ff0';
+    try {
+      await handleUpdateUserFeature(userId, key, newValue);
+      input.style.border = '1px solid limegreen';
+      setTimeout(() => window.location.reload(), 500);
+    } catch(err) {
+      input.style.border = '1px solid crimson';
+      input.value = err.message;
+      console.error(err);
+      setTimeout(() => {
+        input.disabled = false;
+        input.value = originalValue;
+        input.style.border = originalBorder;
+      }, 3000);
+    }
   }
 
   /**
@@ -463,14 +479,12 @@
     if (!window.confirm('Are you sure you want to permanently delete this user? This cannot be undone.')) {
         return;
     }
-
     const originalContent = button.innerHTML;
     button.disabled = true;
     button.textContent = '⏳';
     try {
       const { apiBase } = getApiConfigForCurrentDomain();
       const accessToken = getUserAccessToken();
-
       const response = await fetch(apiBase + config.api.deleteUserUrl, {
         method: 'DELETE',
         headers: {
@@ -483,10 +497,8 @@
         const errorBody = await response.text();
         throw new Error(`${response.status}: ${errorBody}`);
       }
-
       button.style.backgroundColor = 'limegreen';
       button.innerHTML = '✅';
-
       try {
         localStorage.clear();
         sessionStorage.clear();
@@ -500,7 +512,6 @@
       } finally {
         setTimeout(() => window.location.reload(), 500);
       }
-
     } catch (err) {
       button.style.backgroundColor = 'crimson';
       button.innerHTML = '❌';
@@ -560,73 +571,52 @@
   function renderPanel(user) {
     hideLoader();
     if (ui.container) ui.container.remove();
-
-    const {
-      id, email, utmSource, url, isTUser, userFeatures, nEnabled, activeSubscription
-    } = user;
-
+    const { id, email, utmSource, url, isTUser, userFeatures, nEnabled, activeSubscription } = user;
     const currentHost = window.location.hostname.replace(/^www\./, '');
     const isReadOnly = config.readOnlyDomains.includes(currentHost);
-
+    const isCollapsed = GM_getValue(config.storage.panelCollapsedKey, false);
     let displayUrl = url;
     if (url && url.length > 77) {
       displayUrl = url.substring(0, 77) + '...';
     }
-
     const container = document.createElement('div');
     container.id = config.selectors.container.substring(1);
     Object.assign(container.style, {
       position: 'fixed', bottom: '20px', right: '20px', width: '276px',
       fontSize: '9px', background: 'rgba(0,0,0,0.5)', color: '#fff',
       padding: '3px 3px 3px', zIndex: 9999, fontFamily: 'monospace',
-      backdropFilter: 'blur(5px)', borderRadius: '8px', overflow: 'hidden',
+      backdropFilter: 'blur(5px)', borderRadius: '8px', overflow: 'hidden', border: '1px solid #555'
     });
-
-    /**
-     * Helper to render a non-interactive, right-aligned, colored row.
-     * @param {string} label - The text label for the row.
-     * @param {any} value - The value to display.
-     * @returns {string} HTML string for the row.
-     */
     const renderNonInteractiveRow = (label, value) => {
         const color = value === true ? 'limegreen' : (value === false ? 'crimson' : 'white');
         return `<div style="display: flex; justify-content: space-between; margin-top: 2px; color: ${color};"><span>${label}</span><b>${String(value)}</b></div>`;
     };
-
-    const updatableFeatures = userFeatures ? Object.entries(userFeatures)
-        .filter(([key]) => !config.nonInteractiveFeatures.includes(key)) : [];
-
+    const updatableFeatures = userFeatures ? Object.entries(userFeatures).filter(([key]) => !config.nonInteractiveFeatures.includes(key)) : [];
     const updatableFeaturesHTML = updatableFeatures.length > 0 ? `
       <div style="margin: 10px 0 0px 0;"><b>🔧 Updatable Features:</b></div>
       ${updatableFeatures.map(([key, value]) => {
-        const displayKey = key.length > 37 ? key.substring(0, 36) + '...' : key;
+        const displayKey = key.length > 39 ? key.substring(0, 38) + '...' : key;
         const commonStyles = `display: flex; justify-content: space-between; align-items: center; margin-top: 2px;`;
-
         if (key === 'featureChatExperiment') {
             const inputId = `feature-input-${key}`;
             const dropdownId = `feature-dropdown-${key}`;
-            return `
-                <div style="${commonStyles}">
-                    <span>${displayKey}:</span>
-                    <div style="position: relative; display: flex; align-items: center; gap: 2px; width: 50%;">
-                        <input id="${inputId}" data-action="update-feature-value" data-key="${key}" type="text" value="${value}" style="width: 100%; height: 17px; box-sizing: border-box; background: #222; color: white; border: 1px solid #fff; border-radius: 4px; padding: 4px 6px; font-family: monospace; font-size: 9px; text-align:center;">
-                        <button data-action="toggle-dropdown" data-target-dropdown="${dropdownId}" style="height: 17px; width: 18px; padding: 0; cursor: pointer; background: #555; border: 1px solid #888; border-radius: 4px; color: white;">▼</button>
-                        <div id="${dropdownId}" class="feature-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: #222; border: 1px solid #888; border-radius: 4px; z-index: 10; width: 100%;">
-                            ${config.featureChatExperimentOptions.map(option => `
-                                <div data-action="set-preset-value" data-value="${option}" data-target-input="${inputId}" style="padding: 4px 6px; cursor: pointer;">${option.replace('test_','')}</div>
-                            `).join('')}
+            return `<div style="${commonStyles}">
+                        <span>${displayKey}:</span>
+                        <div style="position: relative; display: flex; align-items: center; gap: 2px; width: 50%;">
+                            <input id="${inputId}" data-action="update-feature-value" data-key="${key}" type="text" value="${value}" style="width: 100%; height: 17px; box-sizing: border-box; background: #222; color: white; border: 1px solid #fff; border-radius: 4px; padding: 4px 6px; font-family: monospace; font-size: 9px; text-align:center;">
+                            <button data-action="toggle-dropdown" data-target-dropdown="${dropdownId}" style="height: 17px; width: 18px; padding: 0; cursor: pointer; background: #555; border: 1px solid #888; border-radius: 4px; color: white;">▼</button>
+                            <div id="${dropdownId}" class="feature-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: #222; border: 1px solid #888; border-radius: 4px; z-index: 10; width: 100%;">
+                                ${config.featureChatExperimentOptions.map(option => `<div data-action="set-preset-value" data-value="${option}" data-target-input="${inputId}" style="padding: 4px 6px; cursor: pointer;">${option.replace('test_','')}</div>`).join('')}
+                            </div>
                         </div>
-                    </div>
-                </div>
-            `;
+                    </div>`;
         } else if (typeof value === 'boolean') {
-            return `<div style="${commonStyles}"><span>${displayKey}:</span><button data-action="toggle-feature" data-key="${key}" style="color:${value ? 'limegreen' : 'crimson'}; cursor: pointer; background-color: #444; border:none; border-radius: 4px; padding: 0 4px; font-size: 9px; font-family: monospace; line-height: 1.6;">${value}</button></div>`;
+            return `<div style="${commonStyles}"><span>${displayKey}:</span><button data-action="toggle-feature" data-key="${key}" style="color:${value ? 'limegreen' : 'crimson'}; cursor: pointer; background-color: #444; border:none; border-radius: 4px; padding: 0 4px; font-size: 9px; font-family: monospace; line-height: 1.6; width: 40px; text-align: center;">${value}</button></div>`;
         } else {
             return `<div style="${commonStyles}"><span>${displayKey}:</span><input data-action="update-feature-value" data-key="${key}" type="text" value="${value}" style="width: 50%; height: 17px; box-sizing: border-box; background: #222; color: white; border: 1px solid #fff; border-radius: 4px; padding: 4px 6px; font-family: monospace; font-size: 9px; text-align:center;"></div>`;
         }
       }).join('')}
     ` : '';
-
     const subscriptionHTML = activeSubscription ? `
       <div style="margin-top: 8px"><b>💳 Subscription:</b></div>
       <div>priceID: ${activeSubscription.productId}</div>
@@ -650,7 +640,6 @@
         `}
       </div>
     `;
-
     container.innerHTML = `
       <style>
         #${container.id} input[type=number]::-webkit-outer-spin-button,
@@ -659,42 +648,40 @@
         #${container.id} input::placeholder { font-size: 8px; color: #888; }
         #${container.id} .feature-dropdown > div:hover { background-color: #444; }
       </style>
-      <div data-handle="drag" style="cursor: move; font-weight: bold; margin-bottom: 8px; margin-left: -2px; margin-right: -2px; margin-top: -2px; user-select: none; position: relative; background: black; padding: 4px 4px 3px; border-radius: 2px;">
+      <div data-handle="parser-drag" style="cursor: move; font-weight: bold; margin-bottom: 8px; margin-left: -2px; margin-right: -2px; margin-top: -2px; user-select: none; position: relative; border-radius: 2px; background: #111; padding: 4px; border-bottom: 1px solid #444;">
         User Info Panel
-        <button data-action="close" title="Close" style="position: absolute; top: 0; right: 0; border: none; background: transparent; color: #fff; font-size: 14px; cursor: pointer; padding: 0 4px;">✖</button>
+        <div style="position: absolute; top: 1px; right: 1px; display: flex; align-items: center;">
+            <button data-action="toggle-collapse" title="Collapse/Expand" style="position: absolute; top: 0px; right: 22px; border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 2 2px; line-height: 1;">${isCollapsed ? '◻' : '–'}</button>
+            <button data-action="close" title="Close" style="position: absolute; top: 0px; right: 4px; border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 2 2px;">✖</button>
+       </div>
       </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <div>
-            <span data-icon="copy-id">🆔 user:</span>
-            <span data-action="copy-id" title="Click to copy user.id" style="color: #0ff; cursor: pointer; background-color: #444; padding: 2px 3px 2px 3px; border-radius: 4px; left:0; user-select: text;">
-            ${id}
-            </span>
+      <div id="${config.selectors.panelBody.substring(1)}" style="display: ${isCollapsed ? 'none' : 'block'};">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div>
+                <span data-icon="copy-id">🆔 user:</span>
+                <span data-action="copy-id" title="Click to copy user.id" style="color: #0ff; cursor: pointer; background-color: #444; padding: 2px 3px 2px 3px; border-radius: 4px; left:0; user-select: text;">
+                ${id}
+                </span>
+            </div>
+            <button data-action="delete-user" title="Delete this user" style="background: transparent; border: none; cursor: pointer; font-size: 14px; color: #fff; padding: 0 2px;">☠️</button>
         </div>
-        <button data-action="delete-user" title="Delete this user" style="background: transparent; border: none; cursor: pointer; font-size: 14px; color: #fff; padding: 0 2px;">☠️</button>
+        <div style="margin-bottom: 6px;">📩 email: ${email || '-'}</div>
+        ${subscriptionHTML}
+        <div style="margin-top: 8px;">🌐 utmSource: <b style="color: ${user.utmSource || '-' !== '-' ? 'white' : '#888'}">${user.utmSource || '-'}</b></div>
+        <div style="display: flex; align-items: baseline; line-height: 1.3;">
+            <span style="white-space: nowrap; flex-shrink: 0;">🔗 url:&nbsp;</span>
+            <b style="color: ${user.url || '-' !== '-' ? 'white' : '#888'}; word-break: break-all;">${displayUrl || '-'}</b>
+        </div>
+        ${renderNonInteractiveRow('🧩 isTUser:', isTUser)}
+        ${user.hasOwnProperty('nEnabled') ? renderNonInteractiveRow('🔞 nEnabled:', nEnabled) : ''}
+        ${userFeatures && userFeatures.hasConfirmedAge !== undefined ? renderNonInteractiveRow('hasConfirmedAge:', userFeatures.hasConfirmedAge) : ''}
+        ${userFeatures && userFeatures.isRomanceModeActive !== undefined ? renderNonInteractiveRow('isRomanceModeActive:', userFeatures.isRomanceModeActive) : ''}
+        ${updatableFeaturesHTML}
+        <button data-action="clear-data" style="margin-top: 10px; padding: 5px 10px; border-radius: 6px; border: none; background: #333; color: #fff; cursor: pointer; font-size: 9px; width: 100%;">
+            🧹 Clear site data
+        </button>
       </div>
-      <div style="margin-bottom: 6px;">📩 email: ${email || '-'}</div>
-
-      ${subscriptionHTML}
-
-      <div style="margin-top: 8px;">🌐 utmSource: <b style="color: ${user.utmSource || '-' !== '-' ? 'white' : '#888'}">${user.utmSource || '-'}</b></div>
-      <div style="display: flex; align-items: baseline; line-height: 1.3;">
-        <span style="white-space: nowrap; flex-shrink: 0;">🔗 url:&nbsp;</span>
-        <b style="color: ${user.url || '-' !== '-' ? 'white' : '#888'}; word-break: break-all;">${displayUrl || '-'}</b>
-      </div>
-
-      ${renderNonInteractiveRow('🧩 isTUser:', isTUser)}
-      ${user.hasOwnProperty('nEnabled') ? renderNonInteractiveRow('🔞 nEnabled:', nEnabled) : ''}
-      ${userFeatures && userFeatures.hasConfirmedAge !== undefined ? renderNonInteractiveRow('hasConfirmedAge:', userFeatures.hasConfirmedAge) : ''}
-      ${userFeatures && userFeatures.isRomanceModeActive !== undefined ? renderNonInteractiveRow('isRomanceModeActive:', userFeatures.isRomanceModeActive) : ''}
-
-      ${updatableFeaturesHTML}
-
-      <button data-action="clear-data" style="margin-top: 10px; padding: 5px 10px; border-radius: 6px; border: none; background: #333; color: #fff; cursor: pointer; font-size: 9px; width: 100%;">
-        🧹 Clear site data
-      </button>
     `;
-
     document.body.appendChild(container);
     ui.container = container;
     makeDraggable(container);
@@ -729,65 +716,61 @@
     }
   }
 
-
-  // --- DRAGGING & POSITIONING ---
-
   /**
-   * Applies the saved position to the container.
-   * @param {HTMLElement} container - The element to position.
+   * Applies the panel's saved position from localStorage.
+   * @param {HTMLElement} container - The panel element.
    */
   function applySavedPosition(container) {
-      const savedPos = localStorage.getItem(config.storage.positionKey);
-      if (savedPos) {
-          try {
-              const pos = JSON.parse(savedPos);
-              container.style.left = `${pos.left}px`;
-              container.style.top = `${pos.top}px`;
-              container.style.right = 'auto';
-              container.style.bottom = 'auto';
-          } catch {}
+    const savedPos = localStorage.getItem(config.storage.positionKey);
+    if (savedPos) {
+      try {
+        const pos = JSON.parse(savedPos);
+        container.style.left = `${pos.left}px`;
+        container.style.top = `${pos.top}px`;
+        container.style.right = 'auto';
+        container.style.bottom = 'auto';
+      } catch (e) {
+        console.error('Failed to parse saved position:', e);
       }
+    }
   }
 
   /**
-   * Makes an element draggable.
-   * @param {HTMLElement} container - The draggable container element.
+   * Makes the panel draggable by its header.
+   * @param {HTMLElement} container - The panel element.
    */
   function makeDraggable(container) {
     const dragHandle = container.querySelector(config.selectors.dragHandle);
+    if (!dragHandle) return;
     let isDragging = false;
     let offsetX, offsetY;
-
-    const onMouseDown = (e) => {
-        isDragging = true;
-        offsetX = e.clientX - container.getBoundingClientRect().left;
-        offsetY = e.clientY - container.getBoundingClientRect().top;
-        container.style.transition = 'none';
-        e.preventDefault();
-    };
-
     const onMouseMove = (e) => {
-        if (isDragging) {
-            container.style.left = `${e.clientX - offsetX}px`;
-            container.style.top = `${e.clientY - offsetY}px`;
-            container.style.right = 'auto';
-            container.style.bottom = 'auto';
-        }
+      if (!isDragging) return;
+      container.style.left = `${e.clientX - offsetX}px`;
+      container.style.top = `${e.clientY - offsetY}px`;
+      container.style.right = 'auto';
+      container.style.bottom = 'auto';
     };
-
     const onMouseUp = () => {
-        if (isDragging) {
-            isDragging = false;
-            localStorage.setItem(config.storage.positionKey, JSON.stringify({
-                left: container.offsetLeft,
-                top: container.offsetTop,
-            }));
-        }
+      if (!isDragging) return;
+      isDragging = false;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      localStorage.setItem(config.storage.positionKey, JSON.stringify({
+        left: container.offsetLeft,
+        top: container.offsetTop,
+      }));
     };
-
+    const onMouseDown = (e) => {
+      isDragging = true;
+      offsetX = e.clientX - container.getBoundingClientRect().left;
+      offsetY = e.clientY - container.getBoundingClientRect().top;
+      container.style.transition = 'none';
+      e.preventDefault();
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    };
     dragHandle.addEventListener('mousedown', onMouseDown);
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
   }
 
   // --- INITIALIZATION ---
