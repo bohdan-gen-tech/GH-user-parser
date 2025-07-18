@@ -2,7 +2,7 @@
 // @name         Get-Honey User Parser from LocalStorage
 // @namespace    https://github.com/bohdan-gen-tech
 // @version      2025.07.19.1
-// @description  Added drag and drop capability on mobile devices. Remove autorefresh page after subscription activation. Full code in Confluence.
+// @description  Added drag and drop capability on mobile devices. Removed page autorefresh after subscription activation. Full code in Confluence.
 // @author       Bohdan S.
 // @match        https://get-honey.ai/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=get-honey.ai
