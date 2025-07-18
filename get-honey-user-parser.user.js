@@ -23,6 +23,7 @@
       authKey: 'persist:auth',
       positionKey: 'userInfoPanelPosition',
       adminTokenCacheKey: 'adminAuthTokenCache',
+      panelCollapsedKey: 'userInfoPanelCollapsed',
     },
     api: {
       loginUrl: '', // <-- ENTER YOUR LOGIN ENDPOINT
@@ -79,7 +80,6 @@
       deleteUserBtn: '[data-action="delete-user"]',
     },
   };
-
   /**
    * Global state variables for the script.
    */
@@ -88,17 +88,13 @@
     container: null,
     loader: null,
   };
-
-
   // --- SCRIPT LOGIC & HANDLERS ---
-
   /**
    * Capitalizes the first letter of a string.
    * @param {string} s The string to capitalize.
    * @returns {string}
    */
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-
   /**
    * Gets API config (apiBase, productId) based on the current domain group.
    * @returns {{apiBase: string, productId: string}}
@@ -113,7 +109,6 @@
     console.error(`Unsupported domain: ${currentHost}.`);
     return { apiBase: config.api.stageApiBase, productId: config.api.stageProductId };
   }
-
   /**
    * Kicks off the main interval to check for user data changes in localStorage.
    */
@@ -136,7 +131,6 @@
       }
     }, config.checkInterval);
   }
-
   /**
    * Waits for the page to be fully loaded before starting the main logic.
    */
@@ -147,7 +141,6 @@
       window.addEventListener('load', () => setTimeout(main, 1500));
     }
   }
-
   /**
    * Attaches all event listeners for the panel (clicks, keydown).
    * @param {HTMLElement} container - The panel's container element.
@@ -171,13 +164,11 @@
       };
       actions[action]?.(e);
     });
-
     container.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.target.dataset.action === 'update-feature-value') {
             handleUpdateFeatureValue(e.target, user.id);
         }
     });
-
     document.addEventListener('click', (e) => {
         if (ui.container && !ui.container.contains(e.target)) {
             const openDropdowns = ui.container.querySelectorAll('.feature-dropdown');
@@ -187,7 +178,6 @@
         }
     });
   }
-
   /**
    * Toggles the collapsed/expanded state of the panel.
    * @param {HTMLElement} button - The collapse toggle button.
@@ -201,7 +191,6 @@
     button.textContent = newState ? '◻' : '–';
     GM_setValue(config.storage.panelCollapsedKey, newState);
   }
-
   /**
    * Fetches an admin access token, using a 24-hour cache via GM_setValue/GM_getValue.
    * @returns {Promise<string>} The access token.
@@ -228,7 +217,6 @@
     GM_setValue(config.storage.adminTokenCacheKey, { token: accessToken, expiry });
     return accessToken;
   }
-
   /**
    * Gets the current user's access token from localStorage.
    * @returns {string|null} The user's access token or null if not found.
@@ -244,7 +232,6 @@
     }
     return JSON.parse(authData.accessToken);
   }
-
   /**
    * Toggles the visibility of a custom dropdown menu.
    * @param {HTMLElement} button - The dropdown toggle button.
@@ -257,7 +244,6 @@
       dropdown.style.display = isVisible ? 'none' : 'block';
     }
   }
-
   /**
    * Sets the value of an input field based on a dropdown selection.
    * @param {HTMLElement} optionElement - The clicked option element in the dropdown.
@@ -275,7 +261,6 @@
       dropdown.style.display = 'none';
     }
   }
-
   /**
    * Generic handler to send the user feature update PUT request.
    * @param {string} userId - The user's ID.
@@ -299,7 +284,6 @@
       throw new Error(`${response.status}: ${errorBody}`);
     }
   }
-
   /**
    * Handles toggling a boolean user feature.
    * @param {HTMLElement} button - The clicked toggle button.
@@ -332,7 +316,6 @@
       }, 3000);
     }
   }
-
   /**
    * Handles updating a string/number user feature.
    * @param {HTMLElement} input - The input element.
@@ -360,7 +343,6 @@
       }, 3000);
     }
   }
-
   /**
    * Handles updating user token balance.
    * @param {HTMLElement} button - The clicked button.
@@ -409,7 +391,6 @@
       }, 2000);
     }
   }
-
   /**
    * Handles activating a free subscription.
    * @param {HTMLElement} button - The clicked button.
@@ -446,7 +427,6 @@
       }, 5000);
     }
   }
-
   /**
    * Handles copying text to the clipboard.
    * @param {HTMLElement} target - The clicked element.
@@ -469,7 +449,6 @@
       }, 1000);
     }
   }
-
   /**
    * Handles deleting the current user.
    * @param {HTMLElement} button - The clicked button.
@@ -525,7 +504,6 @@
       }, 3000);
     }
   }
-
   /**
    * Handles clearing all site data.
    * @param {HTMLElement} button - The clicked button.
@@ -560,10 +538,7 @@
       setTimeout(() => window.location.reload(), 800);
     }
   }
-
-
   // --- UI & PANEL RENDERING ---
-
   /**
    * Renders the main user info panel.
    * @param {object} user - The user data object.
@@ -652,7 +627,7 @@
         User Info Panel
         <div style="position: absolute; top: 1px; right: 1px; display: flex; align-items: center;">
             <button data-action="toggle-collapse" title="Collapse/Expand" style="position: absolute; top: 0px; right: 22px; border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 2 2px; line-height: 1;">${isCollapsed ? '◻' : '–'}</button>
-            <button data-action="close" title="Close" style="position: absolute; top: 0px; right: 4px; border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 2 2px;">✖</button>
+            <button data-action="close" title="Close" style="position: absolute; top: 0px; right: 4px; border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 2 2px;">✖</button>
        </div>
       </div>
       <div id="${config.selectors.panelBody.substring(1)}" style="display: ${isCollapsed ? 'none' : 'block'};">
@@ -688,7 +663,6 @@
     attachEventListeners(container, user);
     applySavedPosition(container);
   }
-
   /**
    * Creates and displays the initial loading indicator.
    */
@@ -705,7 +679,6 @@
       document.body.appendChild(ui.loader);
     }
   }
-
   /**
    * Removes the loading indicator from the DOM.
    */
@@ -715,7 +688,6 @@
       ui.loader = null;
     }
   }
-
   /**
    * Applies the panel's saved position from localStorage.
    * @param {HTMLElement} container - The panel element.
@@ -734,7 +706,6 @@
       }
     }
   }
-
   /**
    * Makes the panel draggable by its header.
    * @param {HTMLElement} container - The panel element.
@@ -772,10 +743,7 @@
     };
     dragHandle.addEventListener('mousedown', onMouseDown);
   }
-
   // --- INITIALIZATION ---
-
   showLoader();
   waitForLoad();
-
 })();
