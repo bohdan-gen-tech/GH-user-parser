@@ -667,7 +667,7 @@
                 ${id}
                 </span>
             </div>
-            <button data-action="delete-user" title="Delete this user" style="background: transparent; border: none; cursor: pointer; font-size: 11px; color: #fff; padding: 0 2px;">☠️</button>
+            <button data-action="delete-user" title="Delete this user" style="background: transparent; border: none; cursor: pointer; font-size: 11px; color: #fff; padding: 0 3px;">☠️</button>
         </div>
         <div style="margin-bottom: 6px;">📩 email: ${email || '-'}</div>
         ${subscriptionHTML}
