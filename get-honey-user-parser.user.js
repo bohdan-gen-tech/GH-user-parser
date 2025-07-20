@@ -2,7 +2,7 @@
 // @name         User Parser. Free ver. Full code in Confluence
 // @namespace    https://github.com/bohdan-gen-tech
 // @version      2025.07.20.1
-// @description  Added drag and drop capability on mobile devices. Removed page autorefresh after subscription activation. Full code in Confluence.
+// @description  Improved mobile UX: drag & drop + UI fixes. Removed page autorefresh after subscription activation.
 // @author       Bohdan S.
 // @match        https://get-honey.ai/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=get-honey.ai
@@ -653,7 +653,7 @@
       </style>
 
       <div data-handle="parser-drag" style="cursor: move; font-weight: bold; user-select: none; background: #ec5353; border-radius: 2px; margin-bottom: 8px; margin-left: -3px; margin-right: -3px; margin-top: -3px; padding: 0 4px 0 8px; border-bottom: 1px solid #444; display: flex; align-items: center; justify-content: space-between; height: 25px;">
-        <span>User Parser. Free ver. Full code in Confluence</span>
+        <span>User Parser. Free ver. Full in Confluence</span>
         <div style="display: flex;">
             <button data-action="toggle-collapse" title="Collapse/Expand" style="border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 0 6px; line-height: 1;">${isCollapsed ? '⊞' : '−'}</button>
             <button data-action="close" title="Close" style="border: none; background: transparent; color: #aaa; font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1;">×</button>
