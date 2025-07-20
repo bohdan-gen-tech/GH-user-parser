@@ -663,7 +663,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div>
                 <span data-icon="copy-id">🆔 user:</span>
-                <span data-action="copy-id" title="Click to copy user.id" style="color: #0ff; cursor: pointer; background-color: #444; padding: 2px 3px 2px 3px; border-radius: 4px; left:0; user-select: text;">
+                <span data-action="copy-id" title="Click to copy user.id" style="color: #0ff; cursor: pointer; background-color: #444; padding: 2px 2px 2px 2px; border-radius: 4px; left:0; user-select: text;">
                 ${id}
                 </span>
             </div>
