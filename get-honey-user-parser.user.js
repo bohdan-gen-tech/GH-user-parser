@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Get-Honey User Parser from LocalStorage
+// @name         User Parser. Free ver. Full code in Confluence
 // @namespace    https://github.com/bohdan-gen-tech
-// @version      2025.07.19.1
+// @version      2025.07.20.1
 // @description  Added drag and drop capability on mobile devices. Removed page autorefresh after subscription activation. Full code in Confluence.
 // @author       Bohdan S.
 // @match        https://get-honey.ai/*
@@ -199,7 +199,7 @@
     const isCollapsed = body.style.display === 'none';
     const newState = !isCollapsed;
     body.style.display = newState ? 'none' : 'block';
-    button.textContent = newState ? '◻' : '–';
+    button.textContent = newState ? '⊞' : '−';
     GM_setValue(config.storage.panelCollapsedKey, newState);
   }
 
@@ -651,12 +651,13 @@
         #${container.id} input::placeholder { font-size: 8px; color: #888; }
         #${container.id} .feature-dropdown > div:hover { background-color: #444; }
       </style>
-      <div data-handle="parser-drag" style="cursor: move; font-weight: bold; margin-bottom: 8px; margin-left: -2px; margin-right: -2px; margin-top: -2px; user-select: none; position: relative; border-radius: 2px; background: #111; padding: 4px; border-bottom: 1px solid #444;">
-        User Info Panel
-        <div style="position: absolute; top: 1px; right: 1px; display: flex; align-items: center;">
-            <button data-action="toggle-collapse" title="Collapse/Expand" style="position: absolute; top: 0px; right: 22px; border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 2 2px; line-height: 1;">${isCollapsed ? '◻' : '–'}</button>
-            <button data-action="close" title="Close" style="position: absolute; top: 0px; right: 4px; border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 2 2px;">✖</button>
-       </div>
+
+      <div data-handle="parser-drag" style="cursor: move; font-weight: bold; user-select: none; background: #ec5353; border-radius: 2px; margin-bottom: 8px; margin-left: -3px; margin-right: -3px; margin-top: -3px; padding: 0 4px 0 8px; border-bottom: 1px solid #444; display: flex; align-items: center; justify-content: space-between; height: 25px;">
+        <span>User Parser. Free ver. Full code in Confluence</span>
+        <div style="display: flex;">
+            <button data-action="toggle-collapse" title="Collapse/Expand" style="border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 0 6px; line-height: 1;">${isCollapsed ? '⊞' : '−'}</button>
+            <button data-action="close" title="Close" style="border: none; background: transparent; color: #aaa; font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1;">×</button>
+        </div>
       </div>
       <div id="${config.selectors.panelBody.substring(1)}" style="display: ${isCollapsed ? 'none' : 'block'};">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -666,7 +667,7 @@
                 ${id}
                 </span>
             </div>
-            <button data-action="delete-user" title="Delete this user" style="background: transparent; border: none; cursor: pointer; font-size: 14px; color: #fff; padding: 0 2px;">☠️</button>
+            <button data-action="delete-user" title="Delete this user" style="background: transparent; border: none; cursor: pointer; font-size: 11px; color: #fff; padding: 0 2px;">☠️</button>
         </div>
         <div style="margin-bottom: 6px;">📩 email: ${email || '-'}</div>
         ${subscriptionHTML}
@@ -699,7 +700,7 @@
     if (ui.container) ui.container.remove();
     if (!ui.loader) {
       ui.loader = document.createElement('div');
-      ui.loader.textContent = '⏳ Loading data...';
+      ui.loader.textContent = '⏳ Loading User Parser...';
       Object.assign(ui.loader.style, {
         position: 'fixed', bottom: '20px', right: '20px', padding: '8px 12px',
         background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '10px',
