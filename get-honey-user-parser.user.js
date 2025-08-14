@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         User Parser. Free ver. Full code in Confluence
 // @namespace    https://github.com/bohdan-gen-tech
-// @version      2025.07.20.1
-// @description  Improved mobile UX: drag & drop + UI fixes. Removed page autorefresh after subscription activation.
-// @author       Bohdan S.
+// @version      2025.08.14.1
+// @description  Added site version field. Added Enter from keyboard for token balance update field. Added voice call dropdown.
+// @author       Bohdan S
 // @match        https://get-honey.ai/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=get-honey.ai
 // @grant        GM_setValue
@@ -52,7 +52,14 @@
       // Add domains where set subscription and tokens won't be work. The domain for endpoints that are responsible for subscription and token updates does not work due to the Origin header, which the browser adds automatically for cross-domain requests, and therefore the CORS mechanism error is triggered on such domains. Therefore, on such domains you can only view user data.
     ],
     featureChatExperimentOptions: [
-      // Add chatgroups values for dropdown menu 
+        'test_bytedance_skylark',
+        'test_llama4_july',
+        'test_llama4',
+        'test_botify_realistic'
+    ],
+    featureVoiceCallExperimentOptions: [
+        'vapi_voice_call_experiment',
+        'eleven_labs_voice_call_experiment'
     ],
     nonInteractiveFeatures: [
         'hasConfirmedAge',
@@ -174,8 +181,18 @@
     });
 
     container.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && e.target.dataset.action === 'update-feature-value') {
+        if (e.key !== 'Enter') return; // Выходим, если это не Enter
+
+        // Логика для полей "Updatable Features"
+        if (e.target.dataset.action === 'update-feature-value') {
             handleUpdateFeatureValue(e.target, user.id);
+        }
+        // Логика для поля "Token Balance"
+        else if (e.target.matches(config.selectors.tokensInput)) {
+            const updateButton = ui.container.querySelector(config.selectors.updateTokensBtn);
+            if (updateButton) {
+                handleUpdateTokens(updateButton, user.id);
+            }
         }
     });
 
@@ -574,7 +591,7 @@
   function renderPanel(user) {
     hideLoader();
     if (ui.container) ui.container.remove();
-    const { id, email, utmSource, url, isTUser, userFeatures, nEnabled, activeSubscription } = user;
+    const { id, email, utmSource, url, isTUser, userFeatures, nEnabled, activeSubscription, version } = user;
     const currentHost = window.location.hostname.replace(/^www\./, '');
     const isReadOnly = config.readOnlyDomains.includes(currentHost);
     const isCollapsed = GM_getValue(config.storage.panelCollapsedKey, false);
@@ -582,6 +599,13 @@
     if (url && url.length > 77) {
       displayUrl = url.substring(0, 77) + '...';
     }
+
+    // Prepare HTML for the version field to render it conditionally without breaking layout.
+    let versionHTML = '';
+    if (user.hasOwnProperty('version') && version) {
+        versionHTML = `<div style="margin-top: 8px;">🏷️ version: <b style="color: #fff;">${version}</b></div>`;
+    }
+
     const container = document.createElement('div');
     container.id = config.selectors.container.substring(1);
     Object.assign(container.style, {
@@ -610,6 +634,19 @@
                             <button data-action="toggle-dropdown" data-target-dropdown="${dropdownId}" style="height: 17px; width: 18px; padding: 0; cursor: pointer; background: #555; border: 1px solid #888; border-radius: 4px; color: white;">▼</button>
                             <div id="${dropdownId}" class="feature-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: #222; border: 1px solid #888; border-radius: 4px; z-index: 10; width: 100%;">
                                 ${config.featureChatExperimentOptions.map(option => `<div data-action="set-preset-value" data-value="${option}" data-target-input="${inputId}" style="padding: 4px 6px; cursor: pointer;">${option.replace('test_','')}</div>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+        } else if (key === 'featureVoiceCallExperiment') {
+            const inputId = `feature-input-${key}`;
+            const dropdownId = `feature-dropdown-${key}`;
+            return `<div style="${commonStyles}">
+                        <span>${displayKey}:</span>
+                        <div style="position: relative; display: flex; align-items: center; gap: 2px; width: 50%;">
+                            <input id="${inputId}" data-action="update-feature-value" data-key="${key}" type="text" value="${value}" style="width: 100%; height: 17px; box-sizing: border-box; background: #222; color: white; border: 1px solid #fff; border-radius: 4px; padding: 4px 6px; font-family: monospace; font-size: 9px; text-align:center;">
+                            <button data-action="toggle-dropdown" data-target-dropdown="${dropdownId}" style="height: 17px; width: 18px; padding: 0; cursor: pointer; background: #555; border: 1px solid #888; border-radius: 4px; color: white;">▼</button>
+                            <div id="${dropdownId}" class="feature-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: #222; border: 1px solid #888; border-radius: 4px; z-index: 10; width: 100%;">
+                                ${config.featureVoiceCallExperimentOptions.map(option => `<div data-action="set-preset-value" data-value="${option}" data-target-input="${inputId}" style="padding: 4px 6px; cursor: pointer;">${option.replace('_voice_call_experiment','')}</div>`).join('')}
                             </div>
                         </div>
                     </div>`;
@@ -652,8 +689,8 @@
         #${container.id} .feature-dropdown > div:hover { background-color: #444; }
       </style>
 
-      <div data-handle="parser-drag" style="cursor: move; font-weight: bold; user-select: none; background: #ec5353; border-radius: 2px; margin-bottom: 8px; margin-left: -3px; margin-right: -3px; margin-top: -3px; padding: 0 4px 0 8px; border-bottom: 1px solid #444; display: flex; align-items: center; justify-content: space-between; height: 25px;">
-        <span>User Parser. Free ver. Full in Confluence</span>
+      <div data-handle="parser-drag" style="cursor: move; font-weight: bold; user-select: none; background: #111; border-radius: 2px; margin-bottom: 8px; margin-left: -3px; margin-right: -3px; margin-top: -3px; padding: 0 4px 0 8px; border-bottom: 1px solid #444; display: flex; align-items: center; justify-content: space-between; height: 25px;">
+        <span>User Parser</span>
         <div style="display: flex;">
             <button data-action="toggle-collapse" title="Collapse/Expand" style="border: none; background: transparent; color: #aaa; font-size: 16px; cursor: pointer; padding: 0 6px; line-height: 1;">${isCollapsed ? '⊞' : '−'}</button>
             <button data-action="close" title="Close" style="border: none; background: transparent; color: #aaa; font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1;">×</button>
@@ -671,6 +708,7 @@
         </div>
         <div style="margin-bottom: 6px;">📩 email: ${email || '-'}</div>
         ${subscriptionHTML}
+        ${versionHTML}
         <div style="margin-top: 8px;">🌐 utmSource: <b style="color: ${user.utmSource || '-' !== '-' ? 'white' : '#888'}">${user.utmSource || '-'}</b></div>
         <div style="display: flex; align-items: baseline; line-height: 1.3;">
             <span style="white-space: nowrap; flex-shrink: 0;">🔗 url:&nbsp;</span>
